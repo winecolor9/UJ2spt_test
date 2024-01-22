@@ -1,0 +1,564 @@
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+global proc WJJ_offsetMirrorKey_Proc(){
+
+global int $WJJ_mirKtimeF ;
+int $WJJ_mirKtimeB ;
+global int $WJJ_frameoffset ;
+string $WJJ_mirKsel_con[]=`ls -sl`;
+$WJJ_mirKtimeF =`currentTime -query`;
+int $akCheck = `autoKeyframe -q -state`;
+
+int $countNum=0;
+string $testNam[]={"*L_*","*l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
+string $fitNam[]={"L_","l_","Left","left","_L","_l","Lf","Lf","R_","r_","Right","right","_R","_r","Rt","Rt"};
+global string $WJJ_mirObj_1;
+global string $WJJ_mirObj_2;
+
+for($s=0;$s<size($WJJ_mirKsel_con);$s++){
+        for($a=0;$a<size($testNam);$a++){
+        	$countNum=`gmatch $WJJ_mirKsel_con[$s] $testNam[$a]`;
+        	if($countNum==1){
+    	        if($a<=7){
+    	            $WJJ_mirObj_1=$fitNam[$a];
+    	            $WJJ_mirObj_2=$fitNam[$a+8];
+    	        }
+    	        else{
+    	            $WJJ_mirObj_1=$fitNam[$a];
+    	            $WJJ_mirObj_2=$fitNam[$a-8];
+        	    }
+        	    break;       
+        	}
+        	
+        	else continue;    
+        }
+        
+        if($countNum!=1)error ($WJJ_mirKsel_con[$s]+"_no fitable name");
+
+
+    global int $WJJ_offsetMirK[2];
+    $WJJ_offsetMirK[0]=`radioButtonGrp -q -sl WJJ_offsetMirK0rBG`;
+    $WJJ_offsetMirK[1]=`radioButtonGrp -q -sl WJJ_offsetMirK1rBG`;
+    $WJJ_offsetMirK[2]=`radioButtonGrp -q -sl WJJ_offsetMirK2rBG`;
+   
+    string $mir_os[];
+    clear $mir_os;
+    $mir_os[0]="tx";
+    $mir_os[1]="ty";
+    $mir_os[2]="tz";
+
+    int $locked_os[];
+    clear $locked_os;
+    $locked_os[0]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_os[0])`;
+    $locked_os[1]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_os[1])`;
+    $locked_os[2]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_os[2])`;
+    int $mul_os;
+    float $fixed_os;
+    //////時間区切り
+    global int $UJ2ForSEswitch ;
+    $UJ2ForSEswitch=`checkBoxGrp -q -v1 WJJ_MirKcheckSwithch1`;
+    
+    global int $UJ2mirKframeS ;
+    global int $UJ2mirKframeE ;
+    global int $mirKcheckC2 ;
+    $WJJ_frameoffset = `intFieldGrp -q -v1 UJ2frameofs` ;
+    /////
+    if($akCheck==1)autoKeyframe -state 0 ;
+    for($i=0;$i<size($locked_os);$i++){
+	    if($locked_os[$i]==0){
+            
+            float $cpkey_os;
+	        string $pasteCon_os=`substituteAllString $WJJ_mirKsel_con[$s] $WJJ_mirObj_1 $WJJ_mirObj_2`;
+    	    $mirKcheckC2=`checkBoxGrp -q -v2 WJJ_MirKcheckSwithch1`;
+
+    	    if($UJ2ForSEswitch==0){
+    	        $cpkey_os=`getAttr -t $WJJ_mirKtimeF ($WJJ_mirKsel_con[$s]+"."+$mir_os[$i])`;
+    	        $WJJ_mirKtimeB = ($WJJ_mirKtimeF) + ($WJJ_frameoffset);
+    	        
+    	        if($WJJ_offsetMirK[$i]==1){
+	                $mul_os=1;
+	                $fixed_os=($cpkey_os)*($mul_os);
+	                setAttr ($pasteCon_os+"."+$mir_os[$i]) $fixed_os ;
+	                if($mirKcheckC2 == 1){
+	                    if( `getAttr -k ($pasteCon_os+"."+$mir_os[$i])`||`getAttr -channelBox ($pasteCon_os+"."+$mir_os[$i])` ){
+	                        setKeyframe -t $WJJ_mirKtimeB ($pasteCon_os+"."+$mir_os[$i]);    
+	                    }
+	                }
+	            }
+	            else if($WJJ_offsetMirK[$i]==2){
+	                $mul_os=-1;
+	                $fixed_os=($cpkey_os)*($mul_os);
+	                setAttr ($pasteCon_os+"."+$mir_os[$i]) $fixed_os ;
+	                if($mirKcheckC2 == 1){
+	                    if( `getAttr -k ($pasteCon_os+"."+$mir_os[$i])`||`getAttr -channelBox ($pasteCon_os+"."+$mir_os[$i])` ){
+	                        setKeyframe -t $WJJ_mirKtimeB ($pasteCon_os+"."+$mir_os[$i]);    
+	                    }
+	                }
+	             }
+	             
+	             else continue;
+	             
+	        }//if($UJ2ForSEswitch==0)
+	        
+	        
+	        else if($UJ2ForSEswitch==1){
+	            $UJ2mirKframeE =`intField -q -v UJ2frameStoE2`;
+                $UJ2mirKframeS =`intField -q -v UJ2frameStoE1`;
+                int $mirKcnt=`keyframe -t ($UJ2mirKframeS+":"+$UJ2mirKframeE) -q -kc ($WJJ_mirKsel_con[$s]+"."+$mir_os[$i])`;
+    	        float $mirKallKtime[]=`keyframe -time ($UJ2mirKframeS+":"+$UJ2mirKframeE) -q -timeChange ($WJJ_mirKsel_con[$s]+"."+$mir_os[$i])`;   
+    	        float $mirKallKvalue[]=`keyframe -time ($UJ2mirKframeS+":"+$UJ2mirKframeE) -q -valueChange ($WJJ_mirKsel_con[$s]+"."+$mir_os[$i])`;
+    	        
+	            if($mirKcnt==0)error "no keyframe";
+	            
+	            else{
+	                for($tt=0;$tt<size($mirKallKtime);$tt++){
+	                    $WJJ_mirKtimeB = ($mirKallKtime[$tt]) + ($WJJ_frameoffset);
+	                    
+	                    if($WJJ_offsetMirK[$i]==1){
+	                        $mul_os=1;
+	                        $fixed_os=($mirKallKvalue[$tt])*($mul_os);
+	                
+	                        setAttr ($pasteCon_os+"."+$mir_os[$i]) $fixed_os ;
+	                        if($mirKcheckC2 == 1){
+	                            if( `getAttr -k ($pasteCon_os+"."+$mir_os[$i])`||`getAttr -channelBox ($pasteCon_os+"."+$mir_os[$i])` ){
+	                                setKeyframe -t $WJJ_mirKtimeB ($pasteCon_os+"."+$mir_os[$i]);
+	                            }
+	                        }
+	                    }
+	                    
+	                    else if($WJJ_offsetMirK[$i]==2){
+	                        $mul_os=-1;
+	                        $fixed_os=($mirKallKvalue[$tt])*($mul_os);
+	                        
+	                        setAttr ($pasteCon_os+"."+$mir_os[$i]) $fixed_os ;
+	                        if($mirKcheckC2 == 1){
+	                            if( `getAttr -k ($pasteCon_os+"."+$mir_os[$i])`||`getAttr -channelBox ($pasteCon_os+"."+$mir_os[$i])` ){
+	                                setKeyframe -t $WJJ_mirKtimeB ($pasteCon_os+"."+$mir_os[$i]);
+	                            }
+                            }    
+	                    }//else if($WJJ_osateMirK[$i]==2)
+	                    
+	                    else continue;
+	                    
+	                }//for($tt)
+	            
+	            }//else($mirKcnt>0)
+	            
+	            
+            }//else if($UJ2ForSEswitch==1)
+            
+        }//if(locked)
+        
+    }//for($i)
+    
+    if($akCheck==1)autoKeyframe -state 1 ;
+}//for(s)
+
+}//proc
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+global proc WJJ_rotateMirrorKey_Proc(){
+
+global int $WJJ_mirKtimeF ;
+int $WJJ_mirKtimeB ;
+global int $WJJ_frameoffset ;
+string $WJJ_mirKsel_con[]=`ls -sl`;
+$WJJ_mirKtimeF =`currentTime -query`;
+int $akCheck = `autoKeyframe -q -state`;
+
+int $countNum=0;
+string $testNam[]={"*L_*","*l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
+string $fitNam[]={"L_","l_","Left","left","_L","_l","Lf","Lf","R_","r_","Right","right","_R","_r","Rt","Rt"};
+global string $WJJ_mirObj_1;
+global string $WJJ_mirObj_2;
+
+for($s=0;$s<size($WJJ_mirKsel_con);$s++){
+        for($a=0;$a<size($testNam);$a++){
+        	$countNum=`gmatch $WJJ_mirKsel_con[$s] $testNam[$a]`;
+        	if($countNum==1){
+    	        if($a<=7){
+    	            $WJJ_mirObj_1=$fitNam[$a];
+    	            $WJJ_mirObj_2=$fitNam[$a+8];
+    	        }
+    	        else{
+    	            $WJJ_mirObj_1=$fitNam[$a];
+    	            $WJJ_mirObj_2=$fitNam[$a-8];
+        	    }
+        	    break;       
+        	}
+        	
+        	else continue;    
+        }
+        
+        if($countNum!=1)error ($WJJ_mirKsel_con[$s]+"_no fitable name");
+
+
+    global int $WJJ_rotateMirK[2];
+    $WJJ_rotateMirK[0]=`radioButtonGrp -q -sl WJJ_rotateMirK0rBG`;
+    $WJJ_rotateMirK[1]=`radioButtonGrp -q -sl WJJ_rotateMirK1rBG`;
+    $WJJ_rotateMirK[2]=`radioButtonGrp -q -sl WJJ_rotateMirK2rBG`;
+   
+    string $mir_rot[];
+    clear $mir_rot;
+    $mir_rot[0]="rx";
+    $mir_rot[1]="ry";
+    $mir_rot[2]="rz";
+
+    int $locked_rot[];
+    clear $locked_rot;
+    $locked_rot[0]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_rot[0])`;
+    $locked_rot[1]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_rot[1])`;
+    $locked_rot[2]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_rot[2])`;
+    int $mul_rot;
+    float $fixed_rot;
+    //////時間区切り
+    global int $UJ2ForSEswitch ;
+    $UJ2ForSEswitch=`checkBoxGrp -q -v1 WJJ_MirKcheckSwithch1`;
+    
+    global int $UJ2mirKframeS ;
+    global int $UJ2mirKframeE ;
+    global int $mirKcheckC2 ;
+    $WJJ_frameoffset = `intFieldGrp -q -v1 UJ2frameofs` ;
+    /////
+    if($akCheck==1)autoKeyframe -state 0 ;
+    for($i=0;$i<size($locked_rot);$i++){
+	    if($locked_rot[$i]==0){
+
+            float $cpkey_rot;
+	        string $pasteCon_rot=`substituteAllString $WJJ_mirKsel_con[$s] $WJJ_mirObj_1 $WJJ_mirObj_2`;
+    	    $mirKcheckC2=`checkBoxGrp -q -v2 WJJ_MirKcheckSwithch1`;
+
+    	    if($UJ2ForSEswitch==0){
+    	        $cpkey_rot=`getAttr -t $WJJ_mirKtimeF ($WJJ_mirKsel_con[$s]+"."+$mir_rot[$i])`;
+    	        $WJJ_mirKtimeB = ($WJJ_mirKtimeF) + ($WJJ_frameoffset);
+    	        
+    	        if($WJJ_rotateMirK[$i]==1){
+	                $mul_rot=1;
+	                $fixed_rot=($cpkey_rot)*($mul_rot);
+	                setAttr ($pasteCon_rot+"."+$mir_rot[$i]) $fixed_rot ;
+	                if($mirKcheckC2 == 1){
+	                    if( `getAttr -k ($pasteCon_rot+"."+$mir_rot[$i])`||`getAttr -channelBox ($pasteCon_rot+"."+$mir_rot[$i])` ){
+	                        setKeyframe -t $WJJ_mirKtimeB ($pasteCon_rot+"."+$mir_rot[$i]);    
+	                    }
+	                }
+	            }
+	            else if($WJJ_rotateMirK[$i]==2){
+	                $mul_rot=-1;
+	                $fixed_rot=($cpkey_rot)*($mul_rot);
+	                setAttr ($pasteCon_rot+"."+$mir_rot[$i]) $fixed_rot ;
+	                if($mirKcheckC2 == 1){
+	                    if( `getAttr -k ($pasteCon_rot+"."+$mir_rot[$i])`||`getAttr -channelBox ($pasteCon_rot+"."+$mir_rot[$i])` ){
+	                        setKeyframe -t $WJJ_mirKtimeB ($pasteCon_rot+"."+$mir_rot[$i]);    
+	                    }
+	                }
+	             }
+	             
+	             else continue;
+	             
+	        }//if($UJ2ForSEswitch==0)
+	        
+	        
+	        else if($UJ2ForSEswitch==1){
+	            $UJ2mirKframeE =`intField -q -v UJ2frameStoE2`;
+                $UJ2mirKframeS =`intField -q -v UJ2frameStoE1`;
+                int $mirKcnt=`keyframe -t ($UJ2mirKframeS+":"+$UJ2mirKframeE) -q -kc ($WJJ_mirKsel_con[$s]+"."+$mir_rot[$i])`;
+    	        float $mirKallKtime[]=`keyframe  -time ($UJ2mirKframeS+":"+$UJ2mirKframeE) -q -timeChange ($WJJ_mirKsel_con[$s]+"."+$mir_rot[$i])`;
+    	        float $mirKallKvalue[]=`keyframe  -time ($UJ2mirKframeS+":"+$UJ2mirKframeE) -q -valueChange ($WJJ_mirKsel_con[$s]+"."+$mir_rot[$i])`;
+    	       
+	            if($mirKcnt==0)error "no keyframe";
+	            
+	            else{
+	                for($tt=0;$tt<size($mirKallKtime);$tt++){
+	                    $WJJ_mirKtimeB = ($mirKallKtime[$tt]) + ($WJJ_frameoffset);
+	                    if($WJJ_rotateMirK[$i]==1){
+	                        $mul_rot=1;
+	                        $fixed_rot=($mirKallKvalue[$tt])*($mul_rot);
+	                
+	                        setAttr ($pasteCon_rot+"."+$mir_rot[$i]) $fixed_rot ;
+	                        if($mirKcheckC2 == 1){
+	                            if( `getAttr -k ($pasteCon_rot+"."+$mir_rot[$i])`||`getAttr -channelBox ($pasteCon_rot+"."+$mir_rot[$i])` ){
+	                                setKeyframe -t $WJJ_mirKtimeB ($pasteCon_rot+"."+$mir_rot[$i]);
+	                            }
+	                        }
+	                    }
+	                    else if($WJJ_rotateMirK[$i]==2){
+	                        $mul_rot=-1;
+	                        $fixed_rot=($mirKallKvalue[$tt])*($mul_rot);
+	                        
+	                        setAttr ($pasteCon_rot+"."+$mir_rot[$i]) $fixed_rot ;
+	                        if($mirKcheckC2 == 1){
+	                            if( `getAttr -k ($pasteCon_rot+"."+$mir_rot[$i])`||`getAttr -channelBox ($pasteCon_rot+"."+$mir_rot[$i])` ){
+	                                setKeyframe -t $WJJ_mirKtimeB ($pasteCon_rot+"."+$mir_rot[$i]);
+	                            }
+                            }    
+	                    }//else if($WJJ_rotateMirK[$i]==2)
+	                    
+	                    else continue;
+	                    
+	                }//for($tt)
+	                
+	            }//else($mirKcnt>0)
+	            
+            }//else if($UJ2ForSEswitch==1)
+            
+        }//if(locked)
+        
+    }//for($i)
+    
+    if($akCheck==1)autoKeyframe -state 1 ;
+}//for(s)
+
+}//proc
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+global proc WJJ_scaleMirrorKey_Proc(){
+
+global int $WJJ_mirKtimeF ;
+int $WJJ_mirKtimeB ;
+global int $WJJ_frameoffset ;
+string $WJJ_mirKsel_con[]=`ls -sl`;
+$WJJ_mirKtimeF =`currentTime -query`;
+int $akCheck = `autoKeyframe -q -state`;
+
+int $countNum=0;
+string $testNam[]={"*L_*","*l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
+string $fitNam[]={"L_","l_","Left","left","_L","_l","Lf","Lf","R_","r_","Right","right","_R","_r","Rt","Rt"};
+global string $WJJ_mirObj_1;
+global string $WJJ_mirObj_2;
+
+for($s=0;$s<size($WJJ_mirKsel_con);$s++){
+
+    for($a=0;$a<size($testNam);$a++){
+    	$countNum=`gmatch $WJJ_mirKsel_con[$s] $testNam[$a]`;
+    	if($countNum==1){
+    	    if($a<=7){
+    	        $WJJ_mirObj_1=$fitNam[$a];
+    	        $WJJ_mirObj_2=$fitNam[$a+8];
+    	    }
+    	    else{
+    	        $WJJ_mirObj_1=$fitNam[$a];
+    	        $WJJ_mirObj_2=$fitNam[$a-8];
+    	    }
+    	    break;   
+    	}
+    	else continue;
+    
+    }
+    if($countNum!=1)error ($WJJ_mirKsel_con[$s]+"_no fitable name");
+
+
+    global int $WJJ_scaleMirK[2];
+    $WJJ_scaleMirK[0]=`radioButtonGrp -q -sl WJJ_scaleMirK0rBG`;
+    $WJJ_scaleMirK[1]=`radioButtonGrp -q -sl WJJ_scaleMirK1rBG`;
+    $WJJ_scaleMirK[2]=`radioButtonGrp -q -sl WJJ_scaleMirK2rBG`;
+
+
+    string $mir_scl[];
+    clear $mir_scl;
+    $mir_scl[0]="sx";
+    $mir_scl[1]="sy";
+    $mir_scl[2]="sz";
+
+    int $locked_scl[];
+    clear $locked_scl;
+    $locked_scl[0]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_scl[0])`;
+    $locked_scl[1]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_scl[1])`;
+    $locked_scl[2]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_scl[2])`;
+
+    int $mul_scl;
+    float $fixed_scl;
+    
+    //////
+    global int $UJ2ForSEswitch ;
+    $UJ2ForSEswitch=`checkBoxGrp -q -v1 WJJ_MirKcheckSwithch1`;
+
+    global int $UJ2mirKframeS ;
+    global int $UJ2mirKframeE ;
+    global int $mirKcheckC2 ;
+    $WJJ_frameoffset = `intFieldGrp -q -v1 UJ2frameofs` ;
+    /////
+    
+    if($akCheck==1)autoKeyframe -state 0 ;
+    for($i=0;$i<size($locked_scl);$i++){
+	    if($locked_scl[$i]==0){
+
+            float $cpkey_scl;
+	        string $pasteCon_scl=`substituteAllString $WJJ_mirKsel_con[$s] $WJJ_mirObj_1 $WJJ_mirObj_2`;
+            $mirKcheckC2=`checkBoxGrp -q -v2 WJJ_MirKcheckSwithch1`;
+            
+            if($UJ2ForSEswitch==0){
+                $cpkey_scl=`getAttr -t $WJJ_mirKtimeF ($WJJ_mirKsel_con[$s]+"."+$mir_scl[$i])`;
+                $WJJ_mirKtimeB = ($WJJ_mirKtimeF) + ($WJJ_frameoffset);
+                if($WJJ_scaleMirK[$i]==1){
+	                $mul_scl=1;
+	                $fixed_scl=($cpkey_scl)*($mul_scl);
+	                setAttr ($pasteCon_scl+"."+$mir_scl[$i]) $fixed_scl ;
+	                if($mirKcheckC2 == 1){
+	                    if( `getAttr -k ($pasteCon_scl+"."+$mir_scl[$i])`||`getAttr -channelBox ($pasteCon_scl+"."+$mir_scl[$i])` ){
+	                       setKeyframe -t $WJJ_mirKtimeB ($pasteCon_scl+"."+$mir_scl[$i]);
+	                    }
+	                }
+	            }
+	            else if($WJJ_scaleMirK[$i]==2){
+	                $mul_scl=-1;
+    	            $fixed_scl=($cpkey_scl)*($mul_scl);
+	                setAttr ($pasteCon_scl+"."+$mir_scl[$i]) $fixed_scl ;
+	                if($mirKcheckC2 == 1){
+	                    if( `getAttr -k ($pasteCon_scl+"."+$mir_scl[$i])`||`getAttr -channelBox ($pasteCon_scl+"."+$mir_scl[$i])` ){
+	                        setKeyframe -t $WJJ_mirKtimeB ($pasteCon_scl+"."+$mir_scl[$i]);
+	                    }
+	                }
+	            }
+	            else continue;
+
+            }
+            
+            else if($UJ2ForSEswitch==1){
+                $UJ2mirKframeE =`intField -q -v UJ2frameStoE2`;
+                $UJ2mirKframeS =`intField -q -v UJ2frameStoE1`;
+                int $mirKcnt=`keyframe  -time ($UJ2mirKframeS+":"+$UJ2mirKframeE)  -q -kc ($WJJ_mirKsel_con[$s]+"."+$mir_scl[$i])`;
+    	        float $mirKallKtime[]=`keyframe  -time ($UJ2mirKframeS+":"+$UJ2mirKframeE)  -q -timeChange ($WJJ_mirKsel_con[$s]+"."+$mir_scl[$i])`;
+    	        float $mirKallKvalue[]=`keyframe  -time ($UJ2mirKframeS+":"+$UJ2mirKframeE)  -q -valueChange ($WJJ_mirKsel_con[$s]+"."+$mir_scl[$i])`;
+    	       
+    	        if($mirKcnt==0)error "no keyframe";
+    	        else{
+    	            for($tt=0;$tt<size($mirKallKtime);$tt++){
+    	                $WJJ_mirKtimeB = ($mirKallKtime[$tt]) + ($WJJ_frameoffset);
+    	                if($WJJ_scaleMirK[$i]==1){
+	                        $mul_scl=1;
+	                        $fixed_scl=($mirKallKvalue[$tt])*($mul_scl);
+	                        	       
+	                        setAttr ($pasteCon_scl+"."+$mir_scl[$i]) $fixed_scl ;
+	                        if($mirKcheckC2 == 1){
+	                            if( `getAttr -k ($pasteCon_scl+"."+$mir_scl[$i])`||`getAttr -channelBox ($pasteCon_scl+"."+$mir_scl[$i])` ){
+	                               setKeyframe -t $WJJ_mirKtimeB ($pasteCon_scl+"."+$mir_scl[$i]);  
+	                            }
+	                        }
+	                    }
+	                    else if($WJJ_scaleMirK[$i]==2){
+	                        $mul_scl=-1;
+    	                    $fixed_scl=($mirKallKvalue[$tt])*($mul_scl);
+    
+	                        setAttr ($pasteCon_scl+"."+$mir_scl[$i]) $fixed_scl ;
+	                        if($mirKcheckC2 == 1){
+	                            if( `getAttr -k ($pasteCon_scl+"."+$mir_scl[$i])`||`getAttr -channelBox ($pasteCon_scl+"."+$mir_scl[$i])` ){
+	                                setKeyframe -t $WJJ_mirKtimeB ($pasteCon_scl+"."+$mir_scl[$i]);
+	                            }
+	                        }
+	                    }//else if($WJJ_scaleMirK[$i]==2)
+	                    
+	                    else continue;
+	                    
+	                }//for
+	                
+	            }//else($mirKcnt>0)
+	            
+	               
+            }//else if($UJ2ForSEswitch==1)
+            
+	    }//if(locked)
+    }//for($i)
+    
+    if($akCheck==1)autoKeyframe -state 1 ;
+}//for($s)
+    
+}//proc
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+global proc WJJ_allTransformMirrorKey_Proc(){
+    WJJ_offsetMirrorKey_Proc;
+    WJJ_rotateMirrorKey_Proc;
+    WJJ_scaleMirrorKey_Proc;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+global proc WJJ_miKchangeUI_Proc(){
+    
+    global int $UJ2ForSEswitch ;
+    $UJ2ForSEswitch=`checkBoxGrp -q -v1 WJJ_MirKcheckSwithch1`;
+    if($UJ2ForSEswitch==1){
+        intField -e -editable 1 -minValue 1 -step 2 UJ2frameStoE1 ;
+        intField -e -editable 1 -minValue 1 -step 2 UJ2frameStoE2 ;
+        checkBoxGrp -e -v2 1 WJJ_MirKcheckSwithch1 ;
+    }
+    else{
+        intField -e -editable 0 UJ2frameStoE1 ;
+        intField -e -editable 0 UJ2frameStoE2 ;
+    }
+}
+
+
+global proc WJJ_miKchangeUI2_Proc(){
+    global int $mirKcheckC2 ;
+    $mirKcheckC2=`checkBoxGrp -q -v2 WJJ_MirKcheckSwithch1`;
+    if($mirKcheckC2==0){
+        checkBoxGrp -e -v1 0 WJJ_MirKcheckSwithch1 ;
+        intField -e -editable 0 UJ2frameStoE1 ;
+        intField -e -editable 0 UJ2frameStoE2 ;
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+global proc UJ2MotionMirror(){
+
+if((`window -ex  WJJ_KeyframeMirror_win`)==1)deleteUI -window WJJ_KeyframeMirror_win;
+window -wh 260 480 -t "UJ2MotionMirror v1.0" WJJ_KeyframeMirror_win ;
+    columnLayout -adj 1 WJJ_KeyframeMirror_cL;
+    
+    //移動
+    separator -height 20 -style "in";
+    radioButtonGrp -l "反転軸：" -nrb 3 -la3 "X" "-X" "N" -cw4 70 60 60 60 -select 3 WJJ_offsetMirK0rBG;
+    radioButtonGrp -l "" -nrb 3 -la3 "Y" "-Y" "N" -cw4 70 60 60 60 -select 3 WJJ_offsetMirK1rBG;
+    radioButtonGrp -l "" -nrb 3 -la3 "Z" "-Z" "N" -cw4 70 60 60 60 -select 3 WJJ_offsetMirK2rBG;
+    button -l "移動" -c "WJJ_offsetMirrorKey_Proc" -h 30;
+    
+    //回転
+    separator -height 10 -style "in";
+    radioButtonGrp -l "反転軸：" -nrb 3 -la3 "X" "-X" "N" -cw4 70 60 60 60 -select 3 WJJ_rotateMirK0rBG;
+    radioButtonGrp -l "" -nrb 3 -la3 "Y" "-Y" "N" -cw4 70 60 60 60 -select 3 WJJ_rotateMirK1rBG;
+    radioButtonGrp -l "" -nrb 3 -la3 "Z" "-Z" "N" -cw4 70 60 60 60 -select 3 WJJ_rotateMirK2rBG;
+    button -l "回転" -c "WJJ_rotateMirrorKey_Proc" -h 30;
+    
+    //スケール
+    separator -height 10 -style "in";
+    radioButtonGrp -l "反転軸：" -nrb 3 -la3 "X" "-X" "N" -cw4 70 60 60 60 -select 3 WJJ_scaleMirK0rBG;
+    radioButtonGrp -l "" -nrb 3 -la3 "Y" "-Y" "N" -cw4 70 60 60 60 -select 3 WJJ_scaleMirK1rBG;
+    radioButtonGrp -l "" -nrb 3 -la3 "Z" "-Z" "N" -cw4 70 60 60 60 -select 3 WJJ_scaleMirK2rBG;
+    button -l "スケール" -c "WJJ_scaleMirrorKey_Proc" -h 30;
+    
+    
+    separator -height 10 -style "in";
+    button -l "反転コピー" -c "WJJ_allTransformMirrorKey_Proc" -h 50;
+    separator -height 10 -style "in";
+    
+    formLayout -nd 100 WJJmirKframeWin;
+
+    text -l "フレーム入力：" -align "right" UJ2textMirK1;
+    intField -editable 0 -minValue 1 -step 2 UJ2frameStoE1;
+    intField -editable 0 -minValue 1 -step 2 UJ2frameStoE2;
+    checkBoxGrp -ncb 2 -l "" -la2 "複数フレーム" "自動キー" -on1 "WJJ_miKchangeUI_Proc" -of1 "WJJ_miKchangeUI_Proc" -of2 "WJJ_miKchangeUI2_Proc" WJJ_MirKcheckSwithch1 ;
+    intFieldGrp -l "フレームオフセット：" -nf 1 UJ2frameofs ;
+
+    formLayout -e
+    -af UJ2textMirK1 left 5 -af UJ2textMirK1 top 5 -ap UJ2textMirK1 right 5 30
+    -ac UJ2frameStoE1 left 5 UJ2textMirK1 -af UJ2frameStoE1 top 5 -ap UJ2frameStoE1 right 5 68
+    -ac UJ2frameStoE2 left 5 UJ2frameStoE1 -af UJ2frameStoE2 top 5 -af UJ2frameStoE2 right 5 
+    -af WJJ_MirKcheckSwithch1 left -100 -ac WJJ_MirKcheckSwithch1 top 5 UJ2frameStoE2 -af WJJ_MirKcheckSwithch1 right 5
+    -af UJ2frameofs left -7 -ac UJ2frameofs top 5 WJJ_MirKcheckSwithch1 -af UJ2frameofs right 5
+
+
+    WJJmirKframeWin;
+    
+showWindow WJJ_KeyframeMirror_win;
+
+}
+
+UJ2MotionMirror;
