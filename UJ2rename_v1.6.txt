@@ -1,10 +1,11 @@
 import pymel.core as pm
-# test
+
 class UJ2Name:
     def __init__(self):
         if pm.window('UJ2NameWindow', q=1, ex=1):
             pm.deleteUI('UJ2NameWindow')
 
+        # main windowを作る
         self.winUI = pm.window('UJ2NameWindow', title='UJ2Name', menuBar=1, wh=(360,230))
         self.layoutM = pm.columnLayout(adj=1)
         self.layout1 = pm.rowColumnLayout( numberOfColumns=3, columnWidth=[(1, 40), (2, 70), (3, 250)] )
@@ -13,6 +14,8 @@ class UJ2Name:
         self.radioB1 = pm.radioButton('UJ2Name_Change', l='change', cl=self.radioC1, cc=pm.Callback(self.UiChange))
         self.text1 = pm.textField(en=0)
         pm.setParent('..')
+
+        # change UI
         self.layout1ex = pm.rowColumnLayout( numberOfColumns=4, columnWidth=[(1, 110), (2, 80), (3, 80), (4, 80)] )
         pm.text('')
         self.radioC1ex = pm.radioCollection()
@@ -20,7 +23,8 @@ class UJ2Name:
         pm.radioButton('UJ2Name_radioB1ex2', l='T階層', cl=self.radioC1ex, en=0)
         pm.radioButton('UJ2Name_radioB1ex3', l='D階層', cl=self.radioC1ex, en=0)
         pm.setParent('..')
-        
+
+        # insert UI
         self.layout2 = pm.rowColumnLayout( numberOfColumns=6, columnWidth=[(1, 40), (2, 70), (3, 60), (4, 45), (5, 105), (6, 30)] )
         pm.text('')
         self.radioB2 = pm.radioButton('UJ2Name_Insert', l='insert', cl=self.radioC1, cc=pm.Callback(self.UiChange))
@@ -30,12 +34,13 @@ class UJ2Name:
         self.ictxButton201 = pm.iconTextButton(style='iconOnly', image1='TypePivot.png', en=0)
         self.popMenu2 = pm.popupMenu(button=1)
         self.menuIt201 = []
+        # プリセット
         self.option2 = ['fk', 'ik', 'dr', 'bnd', 'sk', 'RF']
         for i,opt in enumerate(self.option2):
             self.menuIt201 = pm.menuItem(label=self.option2[i], command=pm.Callback(self.insertUiChange, opt))
         pm.setParent('..')
         
-    
+        # insert UI
         self.layout2ex = pm.rowColumnLayout( numberOfColumns=4, columnWidth=[(1, 110), (2, 80), (3, 80), (4, 80)] )
         pm.text('')
         self.radioC2ex = pm.radioCollection()
@@ -43,7 +48,6 @@ class UJ2Name:
         pm.radioButton('UJ2Name_radioB2ex2', l='T階層', cl=self.radioC2ex, en=0)
         pm.radioButton('UJ2Name_radioB2ex3', l='D階層', cl=self.radioC2ex, en=0)
         pm.setParent('..')
-        
         
         self.layout3 = pm.rowColumnLayout( numberOfColumns=6, columnWidth=[(1, 40), (2, 70), (3, 105), (4, 105), (5, 20), (6,20)] )
         pm.text('')
@@ -54,13 +58,15 @@ class UJ2Name:
         self.ictxButton301 = pm.iconTextButton(style='iconOnly', image1='TypePivot.png', en=0)
         self.popMenu3 = pm.popupMenu(button=1)
         #self.menuIt301 = []
+        # プリセット
         self.option3 = ['_fk_,_ik_', '_L_,_R_', '_ik_,_dr_', '_fk_,_dr_']
         for i,opt in enumerate(self.option3):
             pm.menuItem(label=self.option3[i], command=pm.Callback(self.replaceUiChange, opt))
         
         self.ictxButton302 = pm.iconTextButton(style='iconOnly', image1='SVGRefresh.png', command=pm.Callback(self.replaceUiReverse), en=0)
         pm.setParent('..')
-        
+
+        # replace UI
         self.layout3ex = pm.rowColumnLayout( numberOfColumns=4, columnWidth=[(1, 110), (2, 80), (3, 80), (4, 80)] )
         pm.text('')
         self.radioC3ex = pm.radioCollection()
@@ -163,14 +169,17 @@ class UJ2Name:
     @staticmethod
     def getAlphabet(input_str, amount):
         num = 0
+        # 選択されたオブジェクトの数をゲット
         lenth = len(input_str)
         alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        # 入力文字列の番号部分を取り除いて名前部分しか残らない
         for char in input_str[::-1]:
             if char.isdigit():
                 num += 1
             else : break
         alp = input_str[:(lenth-num)]
         output_str = ''
+        # 27だったら組分けしない
         if amount == 27 :
             output_str = alp
         elif 0 <=amount < 27 :
@@ -178,6 +187,7 @@ class UJ2Name:
         else :
             pm.error('amount out of 26')
         return(output_str)
+
     
     @staticmethod
     def getNumber(input_str):
@@ -186,6 +196,7 @@ class UJ2Name:
         ipNum_lenth = 1
         # num_lenth = 1
         number = 0
+        # 入力文字列の番号部分を取り除いて名前部分しか残らない
         for char in input_str[::-1]:
             if char.isdigit():
                 num_str += char
