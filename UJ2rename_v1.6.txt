@@ -166,17 +166,20 @@ class UJ2Name:
             self.ictxButton201.setEnable(0)
         
 
+    # 入力文字列の名前部分をゲット
     @staticmethod
     def getAlphabet(input_str, amount):
         num = 0
         # 選択されたオブジェクトの数をゲット
         lenth = len(input_str)
         alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        # 入力文字列の番号部分を取り除いて名前部分しか残らない
+        # 番号の桁をゲット
         for char in input_str[::-1]:
             if char.isdigit():
                 num += 1
+            # breakがなければ文字列の中の番号以外の数字は影響を受ける
             else : break
+        # 入力文字列最後の番号部分を取り除いて名前部分しか残らない
         alp = input_str[:(lenth-num)]
         output_str = ''
         # 27だったら組分けしない
@@ -188,7 +191,7 @@ class UJ2Name:
             pm.error('amount out of 26')
         return(output_str)
 
-    
+    # 選択されたオブジェクトのは一つしかない時の番号をゲット
     @staticmethod
     def getNumber(input_str):
         num_str = ''
@@ -196,18 +199,21 @@ class UJ2Name:
         ipNum_lenth = 1
         # num_lenth = 1
         number = 0
-        # 入力文字列の番号部分を取り除いて名前部分しか残らない
+        # 番号の文字列をゲット
         for char in input_str[::-1]:
             if char.isdigit():
                 num_str += char
+            # breakがなければ文字列の中の番号以外の数字に影響される
             else : break
+        # 
         for char in range(len(num_str)):
             num_str_modified += num_str[-1-char]
         if num_str:
             ipNum_lenth = len(num_str_modified)
             number = int(num_str_modified, 10)
         return([number, ipNum_lenth])
-    
+
+    # 複数オブジェクトの時の番号リストをゲット
     @staticmethod
     def getSerialNumber(number, ipNum_lenth, obj_lenth):
         serialNumber = [ (number+n) for n in range(obj_lenth) ]
