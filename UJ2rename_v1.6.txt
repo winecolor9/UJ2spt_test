@@ -260,6 +260,7 @@ class UJ2Name:
         obj_name = ''
         namespace = ''
         namespaceList = []
+        # オブジェクトの名前にnamespaceの存在するかしないかをチェック
         checkNs = ':' in obj_name_nonf
         if checkNs == 1 :
             namespaceList = obj_name_nonf.split(':')
@@ -271,9 +272,11 @@ class UJ2Name:
 
         return([obj_name, namespace, namespaceList])
     
-    
+    # 同じ名前を避けるために
+    # リネームしたいオブジェクトが一つしかない時に使うもの。ほぼほかのツールのためのコード
     @staticmethod
     def reSingleName(obj, new_str):
+        # 影響をなくすためにnamespaceをrootに
         pm.namespace( set = ':' )
         obj_name, namespace, namespaceList = UJ2Name.dealWithNameSpace(obj)
         if namespace : new_str = namespace + new_str
