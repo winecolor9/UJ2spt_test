@@ -191,7 +191,7 @@ class UJ2Name:
             pm.error('amount out of 26')
         return(output_str)
 
-    # 選択されたオブジェクトのは一つしかない時の番号をゲット
+    # 入力名前の番号をint数字にする
     @staticmethod
     def getNumber(input_str):
         num_str = ''
@@ -205,20 +205,25 @@ class UJ2Name:
                 num_str += char
             # breakがなければ文字列の中の番号以外の数字に影響される
             else : break
-        # 
+        # 数字の順番を修正する
         for char in range(len(num_str)):
             num_str_modified += num_str[-1-char]
+        # 正しいint数字と桁数をゲット
         if num_str:
             ipNum_lenth = len(num_str_modified)
             number = int(num_str_modified, 10)
         return([number, ipNum_lenth])
 
-    # 複数オブジェクトの時の番号リストをゲット
+    # リネームのための番号リストをゲット
     @staticmethod
     def getSerialNumber(number, ipNum_lenth, obj_lenth):
+        # 数字リストをゲット
         serialNumber = [ (number+n) for n in range(obj_lenth) ]
+        # 番号リストは修正された数字リストです
         modified_serialNumber = []
         
+        # 番号に0は必要かどうかを判断する
+        # 三桁まで。桁を増やしてもいいが
         if ipNum_lenth == 1 :
             modified_serialNumber = [ str(n) for n in serialNumber ]
         elif ipNum_lenth == 2 :
@@ -237,7 +242,7 @@ class UJ2Name:
                     modified_serialNumber.append(str(n))
         return(modified_serialNumber)
     
-    
+    # namefieldやオブジェクト本当の名前をゲット
     @staticmethod
     def dealWithNameField(obj):
         namefieldList = obj.split('|')
@@ -247,9 +252,10 @@ class UJ2Name:
         obj_name = namefieldList[-1]
         return([obj_name, namefield, namefieldList])
     
-    
+    # namespaceやオブジェクト本当の名前をゲット
     @staticmethod
     def dealWithNameSpace(obj):
+        # namespaceを処理する前に、namefieldを引き離さなければならない
         obj_name_nonf, namefield, namefieldList = UJ2Name.dealWithNameField(obj)
         obj_name = ''
         namespace = ''
