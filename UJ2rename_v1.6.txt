@@ -250,6 +250,7 @@ class UJ2Name:
         if namefield :
             namefield += '|'
         obj_name = namefieldList[-1]
+        # 例 A|B|C|objName  [objName, A|B|C|, [A, B, C, objName]]
         return([obj_name, namefield, namefieldList])
     
     # namespaceやオブジェクト本当の名前をゲット
@@ -269,7 +270,7 @@ class UJ2Name:
         else :
             obj_name = obj_name_nonf
             namespaceList = [namespace, obj_name]
-
+        # 例 A:B:C:objName  [objName, A:B:C:, [A, B, C, objName]]
         return([obj_name, namespace, namespaceList])
     
     # 同じ名前を避けるために
@@ -278,14 +279,18 @@ class UJ2Name:
     def reSingleName(obj, new_str):
         # 影響をなくすためにnamespaceをrootに
         pm.namespace( set = ':' )
+        # オブジェクトのnamespaceをチェック
         obj_name, namespace, namespaceList = UJ2Name.dealWithNameSpace(obj)
         if namespace : new_str = namespace + new_str
+        # 新しい名前の名前部分をゲット
         alphabet = UJ2Name.getAlphabet(new_str, amount=27)
+        # 新しい名前の番号部分をゲット
         input_number = UJ2Name.getNumber(new_str)
         if pm.objExists(new_str) == 0 :
                 pm.rename(obj, new_str)
         elif obj == pm.PyNode(new_str) :
             pass
+        # 同じ名前のオブジェクトがあるとき、番号+1
         else:
             for i in range(10000):
                 output_number = 1 + i + int(input_number[0])
@@ -297,7 +302,7 @@ class UJ2Name:
                 else :
                     modified_str = alphabet + str(output_number)
                 
-                # if obj == pm.PyNode(modified_str) :
+                # 同じ名前のオブジェクトは指定したオブジェクト自分自身の場合
                 if str(obj) == modified_str :
                     break
                 elif pm.objExists(modified_str) == 0 :
@@ -305,16 +310,24 @@ class UJ2Name:
                     break
                 else :
                     continue
-                
+
+    # 複数のオブジェクトをリネーム
     @staticmethod
     def reSerialName(selChain, new_str, amount):
-        # If there is no SerialAlpha needed, int 27 should be written in amount.
+        # もしSerialAlphaが必要ないなら、 amount = int 27
+        # 影響をなくすためにnamespaceをrootに
         pm.namespace( set = ':' )
+        # オブジェクト数をゲット
         obj_lenth = len(selChain)
+        # 新しい名前の名前部分をゲット
         alphabet = UJ2Name.getAlphabet(new_str, amount)
+        # 新しい名前の番号部分をゲット
         input_number = UJ2Name.getNumber(new_str)
+        # すべてのオブジェクトの新しい名前の番号リストをゲット
         serial_number = UJ2Name.getSerialNumber(input_number[0], input_number[1], obj_lenth)
+        # リネーム
         for num, obj in enumerate(selChain):
+            # namespaceをチェック
             obj_name, namespace, namespaceList = UJ2Name.dealWithNameSpace(obj)
             if namespace :
                 new_serialName = namespace + alphabet + serial_number[num]
@@ -331,9 +344,14 @@ class UJ2Name:
     
     @staticmethod
     def insertStr(position, prefix, insert_string, originalname):
+        # ここprefix実はseparatorという意味をしている
+        # 影響をなくすためにnamespaceをrootに
         pm.namespace( set = ':' )
+        # namefieldをチェック
         obj_name_nonf, namefield, namefieldList = UJ2Name.dealWithNameField(originalname)
+        # namespaceをチェック
         obj_name_nonfns, namespace, namespaceList = UJ2Name.dealWithNameSpace(obj_name_nonf)
+        # 区切り記号を取り除く
         name_list = [ str(x) for x in obj_name_nonfns.split(prefix) ]
         name_list.insert(position, insert_string)
         if namefield :
@@ -346,7 +364,7 @@ class UJ2Name:
                 modified_string = namespace + (prefix.join(name_list))
             else:
                 modified_string = prefix.join(name_list)
-        
+        # リネーム
         if pm.objExists(modified_string)==0 :
             pm.rename(originalname, modified_string)
         else:
@@ -355,8 +373,11 @@ class UJ2Name:
     @staticmethod
     def replaceName(str1, str2, sel):
         how = ['selected', 'hierarchy', 'all']
+        # 置換機能はMAYAの標準機能を取り込むもの
+        # 少し思うところもあるだがまた暇の時に書く
         pm.mel.searchReplaceNames(str1, str2, how[sel-1])
-    
+
+    # 新たな機能、未完成
     @staticmethod
     def addNamespace(selChain, ns, parent=':'):
         pm.namespace(add=ns, parent=parent)
@@ -446,14 +467,16 @@ class UJ2Name:
 
 
 class UJ2Select:
-    
+
+    # 選択したオブジェクトと、指定したノードタイプの子どもをゲット
     @staticmethod
     def SpecifiedTypeHierarchy(sel, Ntype):
         # sel = pm.selected()[0]
         selChain = [ child for child in (sel.listRelatives(ad=1, c=1))[::-1] if (pm.nodeType(child))==Ntype ]
         selChain.insert(0, sel)
         return(selChain)
-    
+
+    # 選択したオブジェクトと、それと同じノードタイプの子どもをゲット
     @staticmethod
     def getTypeHierarchy(sel):
         # sel = pm.selected()[0]
@@ -461,7 +484,8 @@ class UJ2Select:
         selChain = [ child for child in (sel.listRelatives(ad=1, c=1))[::-1] if (pm.nodeType(child))==Ntype ]
         selChain.insert(0, sel)
         return(selChain)
-    
+
+    # 選択したオブジェクトと、それと同じノードタイプの全部の親をゲット
     @staticmethod
     def getTypeHierarchy_r(sel):
         # sel = pm.selected()[0]
@@ -476,7 +500,8 @@ class UJ2Select:
         selChain = [ parent for parent in reversed(chain) if (pm.nodeType(parent))==Ntype ]
         selChain.append(sel)
         return(selChain)
-        
+
+    # 選択したオブジェクトと、Dagノードの子どもをゲット
     @staticmethod
     def getDagHierarchy(sel):
         selChain = [ child for child in (sel.listRelatives(ad=1, c=1))[::-1] ]
@@ -503,7 +528,8 @@ class UJ2Select:
         for s in shape:
             selChain.remove(s)
         return(selChain)
-    
+
+    # シェイプノード含み
     @staticmethod
     def getAllHierarchy(sel):
         selChain = [ child for child in (sel.listRelatives(ad=1, c=1))[::-1] ]
