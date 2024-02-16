@@ -11,8 +11,8 @@ $WJJ_mirKtimeF =`currentTime -query`;
 int $akCheck = `autoKeyframe -q -state`;
 
 int $countNum=0;
-string $testNam[]={"*L_*","*l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
-string $fitNam[]={"L_","l_","Left","left","_L","_l","Lf","Lf","R_","r_","Right","right","_R","_r","Rt","Rt"};
+string $testNam[]={"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*_r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
+string $fitNam[]={"L_","_l_","Left","left","_L","_l","Lf","Lf","R_","_r_","Right","right","_R","_r","Rt","Rt"};
 global string $WJJ_mirObj_1;
 global string $WJJ_mirObj_2;
 
@@ -170,8 +170,8 @@ $WJJ_mirKtimeF =`currentTime -query`;
 int $akCheck = `autoKeyframe -q -state`;
 
 int $countNum=0;
-string $testNam[]={"*L_*","*l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
-string $fitNam[]={"L_","l_","Left","left","_L","_l","Lf","Lf","R_","r_","Right","right","_R","_r","Rt","Rt"};
+string $testNam[]={"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*_r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
+string $fitNam[]={"L_","_l_","Left","left","_L","_l","Lf","Lf","R_","_r_","Right","right","_R","_r","Rt","Rt"};
 global string $WJJ_mirObj_1;
 global string $WJJ_mirObj_2;
 
@@ -326,8 +326,8 @@ $WJJ_mirKtimeF =`currentTime -query`;
 int $akCheck = `autoKeyframe -q -state`;
 
 int $countNum=0;
-string $testNam[]={"*L_*","*l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
-string $fitNam[]={"L_","l_","Left","left","_L","_l","Lf","Lf","R_","r_","Right","right","_R","_r","Rt","Rt"};
+string $testNam[]={"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*_r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
+string $fitNam[]={"L_","_l_","Left","left","_L","_l","Lf","Lf","R_","_r_","Right","right","_R","_r","Rt","Rt"};
 global string $WJJ_mirObj_1;
 global string $WJJ_mirObj_2;
 
