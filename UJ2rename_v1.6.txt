@@ -48,7 +48,8 @@ class UJ2Name:
         pm.radioButton('UJ2Name_radioB2ex2', l='T階層', cl=self.radioC2ex, en=0)
         pm.radioButton('UJ2Name_radioB2ex3', l='D階層', cl=self.radioC2ex, en=0)
         pm.setParent('..')
-        
+
+        # replace UI
         self.layout3 = pm.rowColumnLayout( numberOfColumns=6, columnWidth=[(1, 40), (2, 70), (3, 105), (4, 105), (5, 20), (6,20)] )
         pm.text('')
         self.radioB3 = pm.radioButton('UJ2Name_Replace', l='replace', cl=self.radioC1, cc=pm.Callback(self.UiChange))
