@@ -1,3 +1,6 @@
+# Written by Wu Juanjuan
+# 2023.9
+
 import pymel.core as pm
 
 class UJ2Name:
@@ -392,21 +395,24 @@ class UJ2Name:
 
     def UJ2NameExecute(self):
         sel = self.radioC1.getSelect()
-        
+        # 名前変更を実行
         if sel=='UJ2Name_Change' :
             selected_obj = pm.selected()
+            # 選択したオブジェクトの数をゲット
             lenth = len(selected_obj)
             new_str = self.text1.getText()
             rc2_opt = int(self.radioC1ex.getSelect()[-1])
-            
+            # 選択オプション
             if rc2_opt == 1 :
                 if lenth == 1 :
                     UJ2Name.reSingleName(selected_obj[0], new_str)
                 elif lenth > 1 :
+                    # オブジェクトは一つ以上の場合
                     # If there is no SerialAlpha needed, int 27 should be written in amount.
                     UJ2Name.reSerialName(selected_obj, new_str, amount=27)
                 else :
                     pass
+            # T階層オプション
             elif rc2_opt == 2 :
                 for amount, o in enumerate(selected_obj):
                     selChain = UJ2Select.getTypeHierarchy(o)
@@ -415,7 +421,8 @@ class UJ2Name:
                     elif lenth == 1 :
                         UJ2Name.reSerialName(selChain, new_str, amount=27)
                     else :
-                        pass        
+                        pass
+            # D階層オプション
             elif rc2_opt == 3 :
                 for amount, o in enumerate(selected_obj):
                     selChain = UJ2Select.getDagHierarchy(o)
@@ -428,24 +435,26 @@ class UJ2Name:
             else :
                 pass
         
+        # 文字挿入を実行
         elif sel=='UJ2Name_Insert' :
             position = self.int2.getValue()
             insert_string = self.text2.getText()
             prefix = self.text2ex.getText()
             
             rc2_opt = int(self.radioC2ex.getSelect()[-1])
+            # 選択オプション
             if rc2_opt == 1 :
                 obj = pm.selected()
                 for o in obj:
                     UJ2Name.insertStr(position, prefix, insert_string, o)
-                    
+            # T階層オプション        
             elif rc2_opt == 2 :
                 selected_obj = pm.selected()
                 for obj in selected_obj :
                     obj_typeHierarchy = UJ2Select.getTypeHierarchy(obj)
                     for o in obj_typeHierarchy :
                         UJ2Name.insertStr(position, prefix, insert_string, o)
-                        
+            # D階層オプション  
             elif rc2_opt == 3 :
                 selected_obj = pm.selected()
                 for obj in selected_obj :
@@ -455,7 +464,7 @@ class UJ2Name:
             else :
                 pass
             
-        
+        # 文字置換を実行
         elif sel=='UJ2Name_Replace' :
             sel = int(self.radioC3ex.getSelect()[-1])
             str1 = self.text301.getText()
