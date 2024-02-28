@@ -1,43 +1,74 @@
+//　Written by Wu Juanjuan
+//　2023.2
+//////////////////////////////////////
+// Read Me
+//　①名前が
+//　{"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*_r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"}
+//　のラベルがついているコントローラーにしか適用しないです。
 
-//////////////////////////////////////////////////////////////////////////////////////
+//　②ツールを使用する時、
+//　自動キーオプションの優先順位はツール自動キー＞MAYA標準機能オートキー
+//　コントローラーにはすでにキーフレームが打った場合、正しく動作するためにツールの自動キーオプションをオンにする推奨。
 
+//　③複数キーフレームを反転コピーする時、MAYAビューの状態が正しく更新しないためモデルがおかしく見える可能性はあります。
+//　このような時にタイムスライダーを少し操作すれば正しい状態に戻ります。
+
+
+//　コントローラーの移動アトリビュートを反転コピーぺ
 global proc WJJ_offsetMirrorKey_Proc(){
 
 global int $WJJ_mirKtimeF ;
 int $WJJ_mirKtimeB ;
 global int $WJJ_frameoffset ;
+//　コントローラーを選択、複数可
 string $WJJ_mirKsel_con[]=`ls -sl`;
+//　今のタイムフレームをゲット
 $WJJ_mirKtimeF =`currentTime -query`;
+//　オートキー状態をゲット
 int $akCheck = `autoKeyframe -q -state`;
 
+
 int $countNum=0;
+// gmatchで左右を検知するためのラベル
 string $testNam[]={"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*_r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"};
 string $fitNam[]={"L_","_l_","Left","left","_L","_l","Lf","Lf","R_","_r_","Right","right","_R","_r","Rt","Rt"};
 global string $WJJ_mirObj_1;
 global string $WJJ_mirObj_2;
+// gmatchのラベル数のオフセット値をゲット。
+//　オフセットを通じて左と右の、対になるラベルを確定する
+int $fitofs = len($fitNam)/2 ;
 
+//　選択した複数のコントローラーを反転コピー、開始
 for($s=0;$s<size($WJJ_mirKsel_con);$s++){
-        for($a=0;$a<size($testNam);$a++){
-        	$countNum=`gmatch $WJJ_mirKsel_con[$s] $testNam[$a]`;
-        	if($countNum==1){
-    	        if($a<=7){
-    	            $WJJ_mirObj_1=$fitNam[$a];
-    	            $WJJ_mirObj_2=$fitNam[$a+8];
-    	        }
-    	        else{
-    	            $WJJ_mirObj_1=$fitNam[$a];
-    	            $WJJ_mirObj_2=$fitNam[$a-8];
-        	    }
-        	    break;       
-        	}
-        	
-        	else continue;    
+    
+    //　今のコントローラーの反対側の方を探し出す
+    for($a=0;$a<size($testNam);$a++){
+        //　今のコントローラーの名前に正しい左右ラベルがあるかどうかを検知する
+        $countNum=`gmatch $WJJ_mirKsel_con[$s] $testNam[$a]`;
+        //　正しい左右ラベルがあれば実行
+        if($countNum==1){
+            if($a<=$fitofs-1){
+                //　今のコントローラーの名前の中のラベルをゲット
+                $WJJ_mirObj_1=$fitNam[$a];
+                //　反対側のコントローラーの名前の中のラベルをゲット
+                $WJJ_mirObj_2=$fitNam[$a+$fitofs];
+            }
+            else{
+                $WJJ_mirObj_1=$fitNam[$a];
+                $WJJ_mirObj_2=$fitNam[$a-$fitofs];
+            }
+            //　確定できたから今回のラベル検知を停止させ
+            break;
         }
-        
-        if($countNum!=1)error ($WJJ_mirKsel_con[$s]+"_no fitable name");
+        else continue;    
+    }
+    //　今のコントローラーのラベルを特定できない場合、
+    //　ネーミングが間違っていると判断んしエラー
+    if($countNum!=1)error ($WJJ_mirKsel_con[$s]+"_no fitable name");
 
 
     global int $WJJ_offsetMirK[2];
+    //　反転パネルのオプションをゲット
     $WJJ_offsetMirK[0]=`radioButtonGrp -q -sl WJJ_offsetMirK0rBG`;
     $WJJ_offsetMirK[1]=`radioButtonGrp -q -sl WJJ_offsetMirK1rBG`;
     $WJJ_offsetMirK[2]=`radioButtonGrp -q -sl WJJ_offsetMirK2rBG`;
@@ -47,7 +78,8 @@ for($s=0;$s<size($WJJ_mirKsel_con);$s++){
     $mir_os[0]="tx";
     $mir_os[1]="ty";
     $mir_os[2]="tz";
-
+    
+    //　今のコントローラーのロック状態をゲット
     int $locked_os[];
     clear $locked_os;
     $locked_os[0]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_os[0])`;
@@ -55,83 +87,105 @@ for($s=0;$s<size($WJJ_mirKsel_con);$s++){
     $locked_os[2]=`getAttr -l ($WJJ_mirKsel_con[$s]+"."+$mir_os[2])`;
     int $mul_os;
     float $fixed_os;
-    //////時間区切り
+    
+    //　複数フレームのcheckBoxの状態をゲット
     global int $UJ2ForSEswitch ;
     $UJ2ForSEswitch=`checkBoxGrp -q -v1 WJJ_MirKcheckSwithch1`;
     
     global int $UJ2mirKframeS ;
     global int $UJ2mirKframeE ;
     global int $mirKcheckC2 ;
+    //　フレームオフセットところの入力数字をゲット
     $WJJ_frameoffset = `intFieldGrp -q -v1 UJ2frameofs` ;
-    /////
+    //　オートキーの影響を削除するために一旦オフ
+    //　元々オンであった場合、プロシージャが終わったらまたオン
     if($akCheck==1)autoKeyframe -state 0 ;
+    
     for($i=0;$i<size($locked_os);$i++){
 	    if($locked_os[$i]==0){
             
             float $cpkey_os;
+            //　反対側のコントローラー（ペスト対象）の名前をゲット
 	        string $pasteCon_os=`substituteAllString $WJJ_mirKsel_con[$s] $WJJ_mirObj_1 $WJJ_mirObj_2`;
+            //　自動キーのcheckBoxの状態をゲット
     	    $mirKcheckC2=`checkBoxGrp -q -v2 WJJ_MirKcheckSwithch1`;
 
+            //　複数フレームのcheckBoxをチェックしてない場合、
+            //　今のタイムフレームの移動アトリビュートをコピーぺ
     	    if($UJ2ForSEswitch==0){
+                //　今のタイムフレームの移動アトリビュート数値をゲット
     	        $cpkey_os=`getAttr -t $WJJ_mirKtimeF ($WJJ_mirKsel_con[$s]+"."+$mir_os[$i])`;
+                //　フレームオフセットの数値を足す
     	        $WJJ_mirKtimeB = ($WJJ_mirKtimeF) + ($WJJ_frameoffset);
     	        
+                //　反転パネルをもとに反対側のコントローラーの移動アトリビュート数値を計算
+                //　プラス場合
     	        if($WJJ_offsetMirK[$i]==1){
 	                $mul_os=1;
 	                $fixed_os=($cpkey_os)*($mul_os);
 	                setAttr ($pasteCon_os+"."+$mir_os[$i]) $fixed_os ;
+                    //　自動キーをオンにした場合反転コピーぺと同時にキーフレームを打つ
 	                if($mirKcheckC2 == 1){
 	                    if( `getAttr -k ($pasteCon_os+"."+$mir_os[$i])`||`getAttr -channelBox ($pasteCon_os+"."+$mir_os[$i])` ){
 	                        setKeyframe -t $WJJ_mirKtimeB ($pasteCon_os+"."+$mir_os[$i]);    
 	                    }
 	                }
 	            }
+                //　マイナス場合
 	            else if($WJJ_offsetMirK[$i]==2){
 	                $mul_os=-1;
 	                $fixed_os=($cpkey_os)*($mul_os);
 	                setAttr ($pasteCon_os+"."+$mir_os[$i]) $fixed_os ;
+                    //　自動キーをオンにした場合反転コピーぺと同時にキーフレームを打つ
 	                if($mirKcheckC2 == 1){
 	                    if( `getAttr -k ($pasteCon_os+"."+$mir_os[$i])`||`getAttr -channelBox ($pasteCon_os+"."+$mir_os[$i])` ){
 	                        setKeyframe -t $WJJ_mirKtimeB ($pasteCon_os+"."+$mir_os[$i]);    
 	                    }
 	                }
 	             }
-	             
-	             else continue;
+                
+                //　反転パネルでNを選択した場合、
+                //　反転コピーがいらないと判断し、何もしない
+                else continue;
 	             
 	        }//if($UJ2ForSEswitch==0)
 	        
-	        
+	        //　複数フレームのcheckBoxをチェックした場合
+            //　複数のキーフレームの数値を一気に反対側に転送
 	        else if($UJ2ForSEswitch==1){
+                //　指定したキーフレームの範囲をゲット
 	            $UJ2mirKframeE =`intField -q -v UJ2frameStoE2`;
                 $UJ2mirKframeS =`intField -q -v UJ2frameStoE1`;
+                
+                //　指定した範囲にキーフレームが入いているかどうかを確定する
                 int $mirKcnt=`keyframe -t ($UJ2mirKframeS+":"+$UJ2mirKframeE) -q -kc ($WJJ_mirKsel_con[$s]+"."+$mir_os[$i])`;
     	        float $mirKallKtime[]=`keyframe -time ($UJ2mirKframeS+":"+$UJ2mirKframeE) -q -timeChange ($WJJ_mirKsel_con[$s]+"."+$mir_os[$i])`;   
     	        float $mirKallKvalue[]=`keyframe -time ($UJ2mirKframeS+":"+$UJ2mirKframeE) -q -valueChange ($WJJ_mirKsel_con[$s]+"."+$mir_os[$i])`;
-    	        
 	            if($mirKcnt==0)error "no keyframe";
-	            
+                
 	            else{
 	                for($tt=0;$tt<size($mirKallKtime);$tt++){
+                        //　オフセット済みのフレーム値をゲット
 	                    $WJJ_mirKtimeB = ($mirKallKtime[$tt]) + ($WJJ_frameoffset);
-	                    
+	                    //　反転パネルをもとに反対側のコントローラーの移動アトリビュート数値を計算
+                        //　プラス場合
 	                    if($WJJ_offsetMirK[$i]==1){
 	                        $mul_os=1;
 	                        $fixed_os=($mirKallKvalue[$tt])*($mul_os);
-	                
 	                        setAttr ($pasteCon_os+"."+$mir_os[$i]) $fixed_os ;
+                            //　自動キーをオンにした場合反転コピーぺと同時にキーフレームを打つ
 	                        if($mirKcheckC2 == 1){
 	                            if( `getAttr -k ($pasteCon_os+"."+$mir_os[$i])`||`getAttr -channelBox ($pasteCon_os+"."+$mir_os[$i])` ){
 	                                setKeyframe -t $WJJ_mirKtimeB ($pasteCon_os+"."+$mir_os[$i]);
 	                            }
 	                        }
 	                    }
-	                    
+	                    //　マイナス場合
 	                    else if($WJJ_offsetMirK[$i]==2){
 	                        $mul_os=-1;
 	                        $fixed_os=($mirKallKvalue[$tt])*($mul_os);
-	                        
 	                        setAttr ($pasteCon_os+"."+$mir_os[$i]) $fixed_os ;
+                            //　自動キーをオンにした場合反転コピーぺと同時にキーフレームを打つ
 	                        if($mirKcheckC2 == 1){
 	                            if( `getAttr -k ($pasteCon_os+"."+$mir_os[$i])`||`getAttr -channelBox ($pasteCon_os+"."+$mir_os[$i])` ){
 	                                setKeyframe -t $WJJ_mirKtimeB ($pasteCon_os+"."+$mir_os[$i]);
@@ -151,7 +205,7 @@ for($s=0;$s<size($WJJ_mirKsel_con);$s++){
         }//if(locked)
         
     }//for($i)
-    
+    //　元々オンであった場合、プロシージャが終わったらまたオン
     if($akCheck==1)autoKeyframe -state 1 ;
 }//for(s)
 
@@ -159,7 +213,9 @@ for($s=0;$s<size($WJJ_mirKsel_con);$s++){
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//　コントローラーの回転アトリビュートを反転コピーぺ
+//　移動・回転・スケールの反転コピーを別々に実行するために三つのプロシージャに分けた
+//　コードは移動の時ほとんど一緒なのでコメントなし
 global proc WJJ_rotateMirrorKey_Proc(){
 
 global int $WJJ_mirKtimeF ;
@@ -174,26 +230,26 @@ string $testNam[]={"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R
 string $fitNam[]={"L_","_l_","Left","left","_L","_l","Lf","Lf","R_","_r_","Right","right","_R","_r","Rt","Rt"};
 global string $WJJ_mirObj_1;
 global string $WJJ_mirObj_2;
-
+int $fitofs = len($fitNam)/2 ;
 for($s=0;$s<size($WJJ_mirKsel_con);$s++){
-        for($a=0;$a<size($testNam);$a++){
-        	$countNum=`gmatch $WJJ_mirKsel_con[$s] $testNam[$a]`;
-        	if($countNum==1){
-    	        if($a<=7){
-    	            $WJJ_mirObj_1=$fitNam[$a];
-    	            $WJJ_mirObj_2=$fitNam[$a+8];
-    	        }
-    	        else{
-    	            $WJJ_mirObj_1=$fitNam[$a];
-    	            $WJJ_mirObj_2=$fitNam[$a-8];
-        	    }
-        	    break;       
-        	}
-        	
-        	else continue;    
+    for($a=0;$a<size($testNam);$a++){
+        $countNum=`gmatch $WJJ_mirKsel_con[$s] $testNam[$a]`;
+        if($countNum==1){
+            if($a<=$fitofs-1){
+                $WJJ_mirObj_1=$fitNam[$a];
+                $WJJ_mirObj_2=$fitNam[$a+$fitofs];
+            }
+            else{
+                $WJJ_mirObj_1=$fitNam[$a];
+                $WJJ_mirObj_2=$fitNam[$a-$fitofs];
+            }
+            break;       
         }
         
-        if($countNum!=1)error ($WJJ_mirKsel_con[$s]+"_no fitable name");
+        else continue;    
+    }
+    
+    if($countNum!=1)error ($WJJ_mirKsel_con[$s]+"_no fitable name");
 
 
     global int $WJJ_rotateMirK[2];
@@ -315,7 +371,9 @@ for($s=0;$s<size($WJJ_mirKsel_con);$s++){
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+//　コントローラーの回転アトリビュートを反転コピーぺ
+//　移動・回転・スケールの反転コピーを別々に実行するために三つのプロシージャに分けた
+//　コードは移動の時ほとんど一緒なのでコメントなし
 global proc WJJ_scaleMirrorKey_Proc(){
 
 global int $WJJ_mirKtimeF ;
@@ -330,19 +388,19 @@ string $testNam[]={"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R
 string $fitNam[]={"L_","_l_","Left","left","_L","_l","Lf","Lf","R_","_r_","Right","right","_R","_r","Rt","Rt"};
 global string $WJJ_mirObj_1;
 global string $WJJ_mirObj_2;
-
+int $fitofs = len($fitNam)/2 ;
 for($s=0;$s<size($WJJ_mirKsel_con);$s++){
 
     for($a=0;$a<size($testNam);$a++){
     	$countNum=`gmatch $WJJ_mirKsel_con[$s] $testNam[$a]`;
     	if($countNum==1){
-    	    if($a<=7){
+    	    if($a<=$fitofs-1){
     	        $WJJ_mirObj_1=$fitNam[$a];
-    	        $WJJ_mirObj_2=$fitNam[$a+8];
+    	        $WJJ_mirObj_2=$fitNam[$a+$fitofs];
     	    }
     	    else{
     	        $WJJ_mirObj_1=$fitNam[$a];
-    	        $WJJ_mirObj_2=$fitNam[$a-8];
+    	        $WJJ_mirObj_2=$fitNam[$a-$fitofs];
     	    }
     	    break;   
     	}
@@ -470,7 +528,7 @@ for($s=0;$s<size($WJJ_mirKsel_con);$s++){
 }//proc
 
 //////////////////////////////////////////////////////////////////////////////////////
-
+//　移動・回転・スケールの反転コピーを一緒に実行したい場合
 global proc WJJ_allTransformMirrorKey_Proc(){
     WJJ_offsetMirrorKey_Proc;
     WJJ_rotateMirrorKey_Proc;
@@ -478,8 +536,11 @@ global proc WJJ_allTransformMirrorKey_Proc(){
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+//　ツールUI
+
 global proc WJJ_miKchangeUI_Proc(){
-    
+    //　複数キーフレームcheckBoxをオンにしたら
+    //　フレーム入力枠を入力可能にする
     global int $UJ2ForSEswitch ;
     $UJ2ForSEswitch=`checkBoxGrp -q -v1 WJJ_MirKcheckSwithch1`;
     if($UJ2ForSEswitch==1){
@@ -495,6 +556,8 @@ global proc WJJ_miKchangeUI_Proc(){
 
 
 global proc WJJ_miKchangeUI2_Proc(){
+    //　自動キーを外したら
+    //　複数キーフレームところのチェックも自動に外す
     global int $mirKcheckC2 ;
     $mirKcheckC2=`checkBoxGrp -q -v2 WJJ_MirKcheckSwithch1`;
     if($mirKcheckC2==0){
@@ -513,21 +576,21 @@ if((`window -ex  WJJ_KeyframeMirror_win`)==1)deleteUI -window WJJ_KeyframeMirror
 window -wh 260 480 -t "UJ2MotionMirror v1.0" WJJ_KeyframeMirror_win ;
     columnLayout -adj 1 WJJ_KeyframeMirror_cL;
     
-    //移動
+    //移動パネル
     separator -height 20 -style "in";
     radioButtonGrp -l "反転軸：" -nrb 3 -la3 "X" "-X" "N" -cw4 70 60 60 60 -select 3 WJJ_offsetMirK0rBG;
     radioButtonGrp -l "" -nrb 3 -la3 "Y" "-Y" "N" -cw4 70 60 60 60 -select 3 WJJ_offsetMirK1rBG;
     radioButtonGrp -l "" -nrb 3 -la3 "Z" "-Z" "N" -cw4 70 60 60 60 -select 3 WJJ_offsetMirK2rBG;
     button -l "移動" -c "WJJ_offsetMirrorKey_Proc" -h 30;
     
-    //回転
+    //回転パネル
     separator -height 10 -style "in";
     radioButtonGrp -l "反転軸：" -nrb 3 -la3 "X" "-X" "N" -cw4 70 60 60 60 -select 3 WJJ_rotateMirK0rBG;
     radioButtonGrp -l "" -nrb 3 -la3 "Y" "-Y" "N" -cw4 70 60 60 60 -select 3 WJJ_rotateMirK1rBG;
     radioButtonGrp -l "" -nrb 3 -la3 "Z" "-Z" "N" -cw4 70 60 60 60 -select 3 WJJ_rotateMirK2rBG;
     button -l "回転" -c "WJJ_rotateMirrorKey_Proc" -h 30;
     
-    //スケール
+    //スケールパネル
     separator -height 10 -style "in";
     radioButtonGrp -l "反転軸：" -nrb 3 -la3 "X" "-X" "N" -cw4 70 60 60 60 -select 3 WJJ_scaleMirK0rBG;
     radioButtonGrp -l "" -nrb 3 -la3 "Y" "-Y" "N" -cw4 70 60 60 60 -select 3 WJJ_scaleMirK1rBG;
