@@ -1,20 +1,4 @@
-//　Written by Wu Juanjuan
-//　2023.2
-//////////////////////////////////////
-// Read Me
-//　①名前が
-//　{"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R_*","*_r_*","*Right*","*right*","*_R","*_r","*Rt*","*Rt"}
-//　のラベルがついているコントローラーにしか適用しないです。
-
-//　②ツールを使用する時、
-//　自動キーオプションの優先順位はツール自動キー＞MAYA標準機能オートキー
-//　コントローラーにはすでにキーフレームが打った場合、正しく動作するためにツールの自動キーオプションをオンにする推奨。
-
-//　③複数キーフレームを反転コピーする時、MAYAビューの状態が正しく更新しないためモデルがおかしく見える可能性はあります。
-//　このような時にタイムスライダーを少し操作すれば正しい状態に戻ります。
-
-
-//　コントローラーの移動アトリビュートを反転コピーぺ
+//　コントローラーの位置アトリビュートを反転コピーぺ
 global proc WJJ_offsetMirrorKey_Proc(){
 
 global int $WJJ_mirKtimeF ;
@@ -36,7 +20,7 @@ global string $WJJ_mirObj_1;
 global string $WJJ_mirObj_2;
 // gmatchのラベル数のオフセット値をゲット。
 //　オフセットを通じて左と右の、対になるラベルを確定する
-int $fitofs = len($fitNam)/2 ;
+int $fitofs = size($fitNam)/2 ;
 
 //　選択した複数のコントローラーを反転コピー、開始
 for($s=0;$s<size($WJJ_mirKsel_con);$s++){
@@ -230,7 +214,7 @@ string $testNam[]={"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R
 string $fitNam[]={"L_","_l_","Left","left","_L","_l","Lf","Lf","R_","_r_","Right","right","_R","_r","Rt","Rt"};
 global string $WJJ_mirObj_1;
 global string $WJJ_mirObj_2;
-int $fitofs = len($fitNam)/2 ;
+int $fitofs = size($fitNam)/2 ;
 for($s=0;$s<size($WJJ_mirKsel_con);$s++){
     for($a=0;$a<size($testNam);$a++){
         $countNum=`gmatch $WJJ_mirKsel_con[$s] $testNam[$a]`;
@@ -388,7 +372,7 @@ string $testNam[]={"*L_*","*_l_*","*Left*","*left*","*_L","*_l","*Lf*","*Lf","*R
 string $fitNam[]={"L_","_l_","Left","left","_L","_l","Lf","Lf","R_","_r_","Right","right","_R","_r","Rt","Rt"};
 global string $WJJ_mirObj_1;
 global string $WJJ_mirObj_2;
-int $fitofs = len($fitNam)/2 ;
+int $fitofs = size($fitNam)/2 ;
 for($s=0;$s<size($WJJ_mirKsel_con);$s++){
 
     for($a=0;$a<size($testNam);$a++){
